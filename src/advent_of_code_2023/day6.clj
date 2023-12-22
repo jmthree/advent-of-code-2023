@@ -1,5 +1,6 @@
 (ns advent-of-code-2023.day6
-  (:require [clojure.string :as str]))
+  (:require [clojure.math :as m]
+            [clojure.string :as str]))
 
 ;part1
 (defn- parse-races [[times-line bests-line]]
@@ -38,8 +39,23 @@
         best (Long/parseLong (apply str best-parts))]
     [time best]))
 
-(defn solve-part-2
-  "This is still kinda slow. There must be a maths trick to cut down the time."
+(defn solve-part-2-slow
   [lines]
   (let [race (parse-one-race lines)]
     (winning-strategies race)))
+
+;part2 efficient
+(defn- solve-as-quadratic
+  "Solves for x in x(t - x) = d + 1, which is 1 more than the target distance."
+  [time target-distance]
+  (let [b time
+        c (inc target-distance)]
+    (sort [(/ (+ b (m/sqrt (- (m/pow b 2) (* 4 c)))) 2)
+           (/ (- b (m/sqrt (- (m/pow b 2) (* 4 c)))) 2)])))
+
+(defn solve-part-2 [lines]
+  (let [[time max-distance] (parse-one-race lines)
+        [low high] (solve-as-quadratic time max-distance)
+        bounded-int-low (int (m/ceil low))
+        bounded-int-high (int (m/floor high))]
+    (- (inc bounded-int-high) bounded-int-low)))
